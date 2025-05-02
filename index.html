@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Indian Creek GPA Calculator</title>
+  <style>
+    body {
+      background-color: #1a1a1a;
+      color: #c2a630;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #1e4032;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      color: white;
+    }
+    h1, h2 {
+      color: #c2a630;
+      text-align: center;
+    }
+    .logo {
+      display: block;
+      margin: 0 auto 20px;
+      width: 150px;
+    }
+    .course {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 10px;
+    }
+    label, select, button {
+      font-size: 16px;
+    }
+    select {
+      margin-left: 10px;
+    }
+    button {
+      background-color: #c2a630;
+      color: #1e4032;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #a48c2c;
+    }
+    .delete-btn {
+      background-color: #dc3545;
+      padding: 5px 10px;
+      border-radius: 5px;
+      color: white;
+    }
+    .delete-btn:hover {
+      background-color: #c82333;
+    }
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      color: #bbb;
+    }
+    .grade-ranges {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.6;
+      padding-left: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <img src="indiancreek.png" alt="Indian Creek Logo" class="logo">
+      <h1>Indian Creek School GPA Calculator</h1>
+      <p>Based on the ICS Grading Scale</p>
+      <p>Leave Free Periods Empty</p>
+    </header>
+
+    <form id="gpa-form">
+      <div id="courses"></div>
+      <button type="button" id="add-course">Add Course</button>
+      <button type="submit">Calculate GPA</button>
+    </form>
+
+    <h2 id="gpa-result"></h2>
+
+    <footer>
+      <div class="grade-ranges">
+        <strong>Grade Ranges:</strong><br>
+        A+: 97–100%<br>
+        A: 93–96%<br>
+        A–: 90–92%<br>
+        B+: 87–89%<br>
+        B: 83–86%<br>
+        B–: 80–82%<br>
+        C+: 77–79%<br>
+        C: 73–76%<br>
+        C–: 70–72%<br>
+        D+: 67–69%<br>
+        D: 63–66%<br>
+        D–: 60–62%<br>
+        F: ≤59%
+      </div>
+      <p>Created by sohumvedant@gmail.com</p>
+      <p>Disclaimer: Not guaranteed to be perfectly accurate, but reflects ICS profile</p>
+    </footer>
+  </div>
+
+  <script>
+    const coursesDiv = document.getElementById("courses");
+    const gpaForm = document.getElementById("gpa-form");
+    const gpaResult = document.getElementById("gpa-result");
+
+    const gradePoints = {
+      "A+": 4.0, "A": 4.0, "A-": 3.7,
+      "B+": 3.3, "B": 3.0, "B-": 2.7,
+      "C+": 2.3, "C": 2.0, "C-": 1.7,
+      "D+": 1.3, "D": 1.0, "D-": 0.5,
+      "F": 0.0
+    };
+
+    const gradeValues = Object.keys(gradePoints);
+
+    for (let i = 1; i <= 7; i++) {
+      addCourse(`Period ${i}`);
+    }
+
+    document.getElementById("add-course").addEventListener("click", () => {
+      addCourse(`Course ${coursesDiv.children.length + 1}`);
+    });
+
+    function addCourse(courseName) {
+      const courseDiv = document.createElement("div");
+      courseDiv.className = "course";
+
+      const gradeOptions = gradeValues
+        .map(grade => `<option value="${grade}">${grade}</option>`)
+        .join("");
+
+      courseDiv.innerHTML = `
+        <label>${courseName} Grade:
+          <select class="grade">
+            <option value="">--Select Grade--</option>
+            ${gradeOptions}
+          </select>
+        </label>
+        <label>Type:
+          <select class="type">
+            <option value="0">Regular</option>
+            <option value="ap">AP</option>
+          </select>
+        </label>
+        <button type="button" class="delete-btn">Delete</button>
+      `;
+
+      courseDiv.querySelector(".delete-btn").addEventListener("click", () => {
+        coursesDiv.removeChild(courseDiv);
+      });
+
+      coursesDiv.appendChild(courseDiv);
+    }
+
+    gpaForm.addEventListener("submit", event => {
+      event.preventDefault();
+
+      const grades = document.querySelectorAll(".grade");
+      const types = document.querySelectorAll(".type");
+
+      let totalPoints = 0;
+      let totalCourses = 0;
+
+      grades.forEach((gradeSelect, index) => {
+        const grade = gradeSelect.value;
+        const type = types[index].value;
+
+        if (grade && grade in gradePoints) {
+          let base = gradePoints[grade];
+          let weight = 0;
+
+          if (type === "ap") weight = 1.0;
+
+          totalPoints += base + weight;
+          totalCourses++;
+        }
+      });
+
+      const gpa = totalCourses > 0 ? (totalPoints / totalCourses).toFixed(2) : 0;
+
+      let honorText = '';
+      if (gpa >= 4.0) {
+        honorText = ' (Head’s List)';
+      } else if (gpa >= 3.6) {
+        honorText = ' (Dean’s List)';
+      }
+
+      gpaResult.textContent = `Your GPA: ${gpa}${honorText}`;
+    });
+  </script>
+</body>
+</html>
